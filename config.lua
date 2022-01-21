@@ -1,6 +1,6 @@
 Config = {}
 
-Config.Debug = false
+Config.Debug = false -- Allows live-restarting of the script.
 
 Config.FailChance = 4 -- Chance to fail sale. (4 = 1 in 4 (25%))
 Config.AlertChance = 2 -- Chance on fail to alert police. (2 = 1 in 2 (50%)). Minimum = 1 (100% chance).
