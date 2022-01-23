@@ -172,43 +172,70 @@ function DrugMenu()
 
         ESX.TriggerServerCallback('bixbi_territories:locationCheck', function(result)
             while (result == nil) do Citizen.Wait(100) end
-            locationInfo = result
-        
-            if (locationInfo == nil and Config.UseBixbiTerritories) then
+            
+
+            if (result == nil and Config.UseBixbiTerritories) then
                 exports['bixbi_core']:Notify('error', 'You are not in a contested territory.')
-            elseif (Config.UseBixbiTerritories and string.lower(locationInfo.location) ~= string.lower(GetNameOfZone(GetEntityCoords(playerPed))) and Config.UseBixbiTerritories) then
+            elseif (Config.UseBixbiTerritories and string.lower(result.location) ~= string.lower(GetNameOfZone(GetEntityCoords(playerPed))) and Config.UseBixbiTerritories) then
                 exports['bixbi_core']:Notify('error', 'Your location information hasn\'t updated yet.')
             else
-                local elements = {}
-                if (Config.UseBixbiTerritories) then
-                    table.insert(elements, {label = 'Territory Information', value = 'territory_info'})
-                end
-                if (not enableSale) then
-                    table.insert(elements, {label = 'Start Selling', value = 'sell'})
-                else
-                    table.insert(elements, {label = 'Stop Selling', value = 'stop_sell'})
-                end
-        
-                ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'drugmenu', {
-                    title    = 'Sale Management',
-                    align    = 'right',
-                    elements = elements
-                }, function(data, menu)	
-                    if data.current.value == 'territory_info' then
-                        -- TerritoryInfoMenu()
-                        exports['bixbi_territories']:TerritoryInfoMenu()
-                    elseif data.current.value == 'sell' then
-                        ChooseDrugMenu(locationInfo)
-                    elseif data.current.value == 'stop_sell' then
-                        CancelSelling()
-                    end
-                end, function(data, menu)
-                    menu.close()
-                end)
+                CreateMenu(result)
             end
         end, GetNameOfZone(GetEntityCoords(playerPed)))
     end)
 end
+
+function CreateMenu(locationInfo)
+    local elements = {}
+    if (string.lower(Config.MenuType) == 'zf') then
+        elements = {
+            {
+                id = 1,
+                header = 'Illegal Menu',
+                txt = ' '
+            }
+        }
+
+        if (Config.UseBixbiTerritories) then table.insert(elements, { id = 2, header = ' ', txt = 'Territory Information', params = { event = 'bixbi_territories:TerritoryInfoMenu' }}) end
+        if (not enableSale) then
+            table.insert(elements, {id = 3, header = ' ', txt = 'Start Selling', params = { event = 'bixbi_illegalsales:SellingToggle', args = { start = true, locationInfo = locationInfo }}})
+        else
+            table.insert(elements, {id = 3, header = ' ', txt = 'Stop Selling', params = { event = 'bixbi_illegalsales:SellingToggle', args = { start = false }}})
+        end 
+
+    else
+        if (Config.UseBixbiTerritories) then table.insert(elements, {label = 'Territory Information', value = 'territory_info'}) end
+        if (not enableSale) then
+            table.insert(elements, {label = 'Start Selling', value = 'sell'})
+        else
+            table.insert(elements, {label = 'Stop Selling', value = 'stop_sell'})
+        end
+        
+        ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'drugmenu', {
+            title    = 'Sale Management',
+            align    = 'right',
+            elements = elements
+        }, function(data, menu)	
+            if data.current.value == 'territory_info' then
+                exports['bixbi_territories']:TerritoryInfoMenu()
+            elseif data.current.value == 'sell' then
+                ChooseDrugMenu(locationInfo)
+            elseif data.current.value == 'stop_sell' then
+                CancelSelling()
+            end
+        end, function(data, menu)
+            menu.close()
+        end)
+    end
+end
+
+AddEventHandler('bixbi_illegalsales:SellingToggle', function(data)
+	if (data.start) then
+        ChooseDrugMenu(data.locationInfo)
+    else
+        CancelSelling()
+    end
+end)
 
 function ChooseDrugMenu(locationInfo)
     local playerPed = PlayerPedId()

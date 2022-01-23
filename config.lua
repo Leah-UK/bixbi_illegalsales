@@ -9,6 +9,7 @@ Config.CurrencySymbol = '$'
 Config.MenuKeybind = nil -- To enable set to something like 'o'.
 Config.MenuCommand = 'illegalmenu'
 Config.MoneyItem = 'black_money' -- Item name of the money on a successful trade.
+Config.MenuType = 'zf' -- esx, zf
 
 Config.Items = {
     processed_weed = { price_low = 15, price_high = 20, low_count = 3, high_count = 5, label = "Weed" },
