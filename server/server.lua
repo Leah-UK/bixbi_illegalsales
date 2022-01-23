@@ -22,6 +22,8 @@ function SuccessfulAttempt(source, zone, item)
 
     if (Config.UseBixbiTerritories) then
         TriggerClientEvent('bixbi_illegalsales:SuccessfulAttempt', source)
+        local payment = qtySell * (math.random(configItem.price_low, configItem.price_high))
+        TriggerEvent('bixbi_territories:sv_Sale', source, zone, 'illegalgoods', payment, item, qtySell)
     else
         if (Config.Locations[zone][item] == nil and Config.RestrictToLocations) then
             TriggerClientEvent('bixbi_core:Notify', source, 'error', 'You cannot sell this here.')
@@ -37,9 +39,10 @@ function SuccessfulAttempt(source, zone, item)
 
         TriggerClientEvent('bixbi_illegalsales:SuccessfulAttempt', source)
         local payment = qtySell * (math.random(configItem.price_low, configItem.price_high))
-        exports.bixbi_core:removeItem(source, item, qtySell)
-        exports.bixbi_core:addItem(source, Config.MoneyItem, payment)
-        TriggerClientEvent('bixbi_core:Notify', source, '', 'You have received ' .. Config.CurrencySymbol .. payment, 10000)
+        if (exports.bixbi_core:addItem(source, Config.MoneyItem, payment)) then
+            exports.bixbi_core:removeItem(source, item, qtySell)
+            TriggerClientEvent('bixbi_core:Notify', source, '', 'You have received ' .. Config.CurrencySymbol .. payment, 10000)
+        end
     end
 end
 

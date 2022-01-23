@@ -170,57 +170,51 @@ function DrugMenu()
         local playerPed = PlayerPedId()
         ESX.UI.Menu.CloseAll()
 
-        local elements = {}
-        if (Config.UseBixbiTerritories) then
-            ESX.TriggerServerCallback('bixbi_territories:locationCheck', function(result)
-                while (result == nil) do Citizen.Wait(100) end
-                locationInfo = result
-            
-                if (locationInfo == nil) then
-                    exports['bixbi_core']:Notify('error', 'You are not in a contested territory.')
-                elseif (string.lower(locationInfo.location) ~= string.lower(GetNameOfZone(GetEntityCoords(playerPed))) and Config.UseBixbiTerritories) then
-                    exports['bixbi_core']:Notify('error', 'Your location information hasn\'t updated yet.')
-                else
+        ESX.TriggerServerCallback('bixbi_territories:locationCheck', function(result)
+            while (result == nil) do Citizen.Wait(100) end
+            locationInfo = result
+        
+            if (locationInfo == nil and Config.UseBixbiTerritories) then
+                exports['bixbi_core']:Notify('error', 'You are not in a contested territory.')
+            elseif (Config.UseBixbiTerritories and string.lower(locationInfo.location) ~= string.lower(GetNameOfZone(GetEntityCoords(playerPed))) and Config.UseBixbiTerritories) then
+                exports['bixbi_core']:Notify('error', 'Your location information hasn\'t updated yet.')
+            else
+                local elements = {}
+                if (Config.UseBixbiTerritories) then
                     table.insert(elements, {label = 'Territory Information', value = 'territory_info'})
-                    DrugMenuOpen(elements)
                 end
-            end, GetNameOfZone(GetEntityCoords(playerPed)))
-        else
-            DrugMenuOpen(elements)
-        end
+                if (not enableSale) then
+                    table.insert(elements, {label = 'Start Selling', value = 'sell'})
+                else
+                    table.insert(elements, {label = 'Stop Selling', value = 'stop_sell'})
+                end
+        
+                ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'drugmenu', {
+                    title    = 'Sale Management',
+                    align    = 'right',
+                    elements = elements
+                }, function(data, menu)	
+                    if data.current.value == 'territory_info' then
+                        -- TerritoryInfoMenu()
+                        exports['bixbi_territories']:TerritoryInfoMenu()
+                    elseif data.current.value == 'sell' then
+                        ChooseDrugMenu(locationInfo)
+                    elseif data.current.value == 'stop_sell' then
+                        CancelSelling()
+                    end
+                end, function(data, menu)
+                    menu.close()
+                end)
+            end
+        end, GetNameOfZone(GetEntityCoords(playerPed)))
     end)
 end
 
-function DrugMenuOpen(elements)
-    if (not enableSale) then
-        table.insert(elements, {label = 'Start Selling', value = 'sell'})
-    else
-        table.insert(elements, {label = 'Stop Selling', value = 'stop_sell'})
-    end
-
-    ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'drugmenu', {
-        title    = 'Sale Management',
-        align    = 'right',
-        elements = elements
-    }, function(data, menu)	
-        if data.current.value == 'territory_info' then
-            -- TerritoryInfoMenu()
-            exports['bixbi_territories']:TerritoryInfoMenu()
-        elseif data.current.value == 'sell' then
-            ChooseDrugMenu()
-        elseif data.current.value == 'stop_sell' then
-            CancelSelling()
-        end
-    end, function(data, menu)
-        menu.close()
-    end)
-end
-
-function ChooseDrugMenu()
+function ChooseDrugMenu(locationInfo)
     local playerPed = PlayerPedId()
 	local elements = {}
 	if (Config.UseBixbiTerritories) then
-		for _,v in pairs(locationInfo.drugs) do
+		for _,v in pairs(locationInfo.illegalitems) do
 			table.insert(elements, {label = string.upper(Config.Items[v].label) .. ' | ' .. Config.CurrencySymbol .. Config.Items[v].price_low  .. '-' .. Config.Items[v].price_high .. 'ea (rrp)', value = v})
 		end
 	else
