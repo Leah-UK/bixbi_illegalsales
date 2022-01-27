@@ -8,6 +8,7 @@ end)
 
 local enableSale, inSaleAttempt = false, false
 local sellingDrug, targetPed, lastTargetPed, locationInfo, locationName = nil, nil, nil, nil, nil
+local lastTargetPeds = {}
 -- local ped = nil
 function LocationCheckLoop()
 	Citizen.CreateThread(function()
@@ -30,7 +31,7 @@ function CreateTarget()
 				icon = "fas fa-money-bill-wave",
 				label = "Sell Items",
 				canInteract = function(entity)
-                    if IsPedDeadOrDying(entity, true) then return false end
+                    if IsPedDeadOrDying(entity, true) or IsPedAPlayer(entity) then return false end
 					return true
                 end, 
 			},
@@ -50,7 +51,7 @@ AddEventHandler('bixbi_illegalsales:AttemptSale', function(data)
 		return
 	end
 
-	if (data.entity == lastTargetPed) then
+	if lastTargetPeds[data.entity] then
 		exports['bixbi_core']:Notify('error', 'You\'ve already sold to this person.')
 	else
 		SaleAttempt(data.entity)
@@ -96,7 +97,7 @@ end)
 function SaleAttempt(ped)
 	local playerPed = PlayerPedId()
 	targetPed = ped
-	lastTargetPed = ped
+	lastTargetPeds[ped] = true
 	inSaleAttempt = true
 
 	Citizen.CreateThread(function()
