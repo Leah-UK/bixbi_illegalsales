@@ -245,10 +245,16 @@ function ChooseDrugMenu(locationInfo)
 			table.insert(elements, {label = string.upper(Config.Items[v].label) .. ' | ' .. Config.CurrencySymbol .. Config.Items[v].price_low  .. '-' .. Config.Items[v].price_high .. 'ea (rrp)', value = v})
 		end
 	else
-		for k,_ in pairs(Config.Locations[GetNameOfZone(GetEntityCoords(playerPed))]) do
-            local drug = Config.Items[k]
-			table.insert(elements, {label = string.upper(drug.label) .. ' | ' .. Config.CurrencySymbol .. drug.price_low .. '-' .. drug.price_high .. 'ea (rrp)', value = k})
-		end
+        local locationDrugs = Config.Locations[GetNameOfZone(GetEntityCoords(playerPed))]
+        if (locationDrugs ~= nil) then
+            for k,_ in pairs(locationDrugs) do
+                local drug = Config.Items[k]
+                table.insert(elements, {label = string.upper(drug.label) .. ' | ' .. Config.CurrencySymbol .. drug.price_low .. '-' .. drug.price_high .. 'ea (rrp)', value = k})
+            end
+        else
+            exports.bixbi_core:Notify('error', 'You cannot sell anything in this area.')
+            return
+        end
 	end
 
 	ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'choosedrug', {
