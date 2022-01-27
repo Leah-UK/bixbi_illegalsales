@@ -168,21 +168,24 @@ end)
 function DrugMenu()
     ESX.TriggerServerCallback('bixbi_core:illegalTaskBlacklist', function(result)
         if (result) then return end
-        local playerPed = PlayerPedId()
         ESX.UI.Menu.CloseAll()
 
-        ESX.TriggerServerCallback('bixbi_territories:locationCheck', function(result)
-            while (result == nil) do Citizen.Wait(100) end
-            
-
-            if (result == nil and Config.UseBixbiTerritories) then
-                exports['bixbi_core']:Notify('error', 'You are not in a contested territory.')
-            elseif (Config.UseBixbiTerritories and string.lower(result.location) ~= string.lower(GetNameOfZone(GetEntityCoords(playerPed))) and Config.UseBixbiTerritories) then
-                exports['bixbi_core']:Notify('error', 'Your location information hasn\'t updated yet.')
-            else
-                CreateMenu(result)
-            end
-        end, GetNameOfZone(GetEntityCoords(playerPed)))
+        if (Config.UseBixbiTerritories) then
+            local playerPed = PlayerPedId()
+            ESX.TriggerServerCallback('bixbi_territories:locationCheck', function(result)
+                while (result == nil) do Citizen.Wait(100) end
+                
+                if (result == nil or result == false) then
+                    exports['bixbi_core']:Notify('error', 'You are not in a contested territory.')
+                elseif (string.lower(result.location) ~= string.lower(GetNameOfZone(GetEntityCoords(playerPed)))) then
+                    exports['bixbi_core']:Notify('error', 'Your location information hasn\'t updated yet.')
+                else
+                    CreateMenu(result)
+                end
+            end, GetNameOfZone(GetEntityCoords(playerPed)))
+        else
+            CreateMenu(nil)
+        end
     end)
 end
 
